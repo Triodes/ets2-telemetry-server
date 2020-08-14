@@ -12,3 +12,5 @@
 /_WorkingFiles
 source/.vs/Funbit.Ets.Telemetry/v14/*
 .vs/
+scs_sdk_1_10/
+NSIS/*.exe

@@ -73,6 +73,32 @@ A complex property that describes a vector or position. Contains the following s
 			// Z coordinate 
 	}
 
+#### wheel
+
+A complex property array that describes a wheel in a truck or trailer. Contains the following sub-properties:
+
+    "wheels": [
+      {
+        "simulated": true,
+          //Is it simulated?
+        "steerable": true,
+          //Is it steerable?
+        "powered": false,
+          //Is it powered?
+        "liftable": false,
+          //Is it liftable?
+        "lifted": false,
+          //Is it lifted?
+        "radius": 0.4974997,
+          //Its radius
+        "position": {
+          "x": -1.045,
+          "y": 0.5,
+          "z": -1.64
+        }
+          //Its position in relation to the truck or trailer
+To check if the first wheel of the truck is liftable, use truck.wheels[0].liftable. For the first trailer, use trailer1.wheels[0].liftable
+  
 ## Game
 
 ##### game.connected 
@@ -818,6 +844,34 @@ The license plate's localized country (ETS2) or state (ATS).
 		Example:		"Arizona"
 		CSS Class:		truck-licensePlateCountry
 
+##### truck.wheelCount
+
+The number of wheels.
+
+		Type:			integer
+		Example:		4
+		CSS Class:		truck-wheelCount
+    
+##### truck.wheels[#]
+
+The array of data on each wheel in the truck.
+
+		Type:			wheels
+		Example:
+        {
+        "simulated": true,
+        "steerable": false,
+        "powered": true,
+        "liftable": false,
+        "lifted": false,
+        "radius": 0.506251156,
+        "position": {
+          "x": -0.93,
+          "y": 0.5,
+          "z": 2.09427857
+        }
+		CSS Class:		truck-wheels-#-simulated, truck-wheels-#-steerable, etc.
+
 ## Trailers
 
 The telemetry API will always return 10 trailers, indicated as trailer1, trailer2, etc. When referring to the proper CSS class, replace the `#` symbol with the proper trailer number.
@@ -970,6 +1024,25 @@ Current trailer placement in the game world.
 						trailer#-placement-heading
 						trailer#-placement-pitch
 						trailer#-placement-roll
+            
+##### trailer#.wheels[##]
+
+The array of data on each wheel in the trailer.
+
+		Type:			wheels
+		Example:
+        "simulated": true,
+        "steerable": true,
+        "powered": false,
+        "liftable": false,
+        "lifted": false,
+        "radius": 0.385479,
+        "position": {
+          "x": 0.953079164,
+          "y": 0.38548,
+          "z": 7.293508
+        }
+		CSS Class:		trailer#-wheels-##-simulated, trailer#-wheels-##-steerable, etc.            
 
 ## Job
 

@@ -36,17 +36,35 @@ namespace Funbit.Ets.Telemetry.Server.Data
 
         public IEts2Game Game => new Ets2Game(_rawData);
         public IEts2Truck Truck => new Ets2Truck(_rawData);
-
-        public IEts2Trailer Trailer1 => new Ets2Trailer(_rawData, 0);
-        public IEts2Trailer Trailer2 => new Ets2Trailer(_rawData, 1);
-        public IEts2Trailer Trailer3 => new Ets2Trailer(_rawData, 2);
-        public IEts2Trailer Trailer4 => new Ets2Trailer(_rawData, 3);
-        public IEts2Trailer Trailer5 => new Ets2Trailer(_rawData, 4);
-        public IEts2Trailer Trailer6 => new Ets2Trailer(_rawData, 5);
-        public IEts2Trailer Trailer7 => new Ets2Trailer(_rawData, 6);
-        public IEts2Trailer Trailer8 => new Ets2Trailer(_rawData, 7);
-        public IEts2Trailer Trailer9 => new Ets2Trailer(_rawData, 8);
-        public IEts2Trailer Trailer10 => new Ets2Trailer(_rawData, 9);
+        public int TrailerCount
+        {
+            get {
+                for (int i = 9; i >=0; i--)
+                    if (!string.IsNullOrEmpty(Ets2TelemetryData.BytesToString((byte[])_rawData.Struct.GetType().GetField($"trailer{i}id").GetValue(_rawData.Struct))))
+                        return i + 1;
+                return 0;
+            }
+        }
+        public IEts2Trailer[] Trailers
+        {
+            get
+            {
+                IEts2Trailer[] array;
+                if (TrailerCount == 0)
+                {
+                    array = new IEts2Trailer[1];
+                    array[0] = new Ets2Trailer(_rawData, 0);
+                    return array;
+                } else
+                {
+                    array = new IEts2Trailer[TrailerCount];
+                    for (int i = 0; i < array.Length; i++)
+                        array[i] = new Ets2Trailer(_rawData, i);
+                    
+                }
+                return array;
+            }
+        }
         public IEts2Job Job => new Ets2Job(_rawData);
         public IEts2Cargo Cargo => new Ets2Cargo(_rawData);
         public IEts2Navigation Navigation => new Ets2Navigation(_rawData);
@@ -138,14 +156,43 @@ namespace Funbit.Ets.Telemetry.Server.Data
         /// Cruise control speed in km/h.
         /// </summary>
         public float CruiseControlSpeed => _rawData.Struct.cruiseControlSpeed * 3.6f;
-
         public bool CruiseControlOn => _rawData.Struct.cruiseControl != 0;
         public float Odometer => _rawData.Struct.truckOdometer;
-        public int Gear => _rawData.Struct.gear;
-        public int DisplayedGear => _rawData.Struct.displayedGear;
+
+        public string ShifterType => Ets2TelemetryData.BytesToString(_rawData.Struct.shifterType);
         public int ForwardGears => (int)_rawData.Struct.gearsForward;
         public int ReverseGears => (int)_rawData.Struct.gearsReverse;
-        public string ShifterType => Ets2TelemetryData.BytesToString(_rawData.Struct.shifterType);
+        public int Gear => _rawData.Struct.gear;
+        public int DisplayedGear => _rawData.Struct.displayedGear;
+        public int ShifterSlot => (int)_rawData.Struct.shifterSlot;
+        public int ShifterToggle 
+        {
+            get 
+            {
+                int selectors = 0;
+                for (int i = 0; i < _rawData.Struct.shifterToggle.Length; i++)
+                    selectors += (int)Math.Pow(2, (double)i) * ((int)Math.Pow(2, (double)_rawData.Struct.shifterToggle[i]) - 1);
+                return selectors;
+            }
+        }
+        public IEts2Shifter[] Shifter
+        {
+            get
+            {
+                var array = new IEts2Shifter[32];
+                for (int i = 0; i < array.Length; i++)
+                    array[i] = new Ets2Shifter(_rawData, i);
+                return array;
+            }
+        }
+        public int SelectorCount => _rawData.Struct.selectorCount;
+        public uint[] HshifterPosition => _rawData.Struct.hshifterPosition;
+        public uint[] HshifterBitmask => _rawData.Struct.hshifterBitmask;
+        public int[] HshifterResulting => _rawData.Struct.hshifterResulting;
+
+        public float GearDifferential => (float)_rawData.Struct.gearDifferential;
+        public float[] GearRatiosForward => (float[])_rawData.Struct.gearRatiosForward;
+        public float[] GearRatiosReverse => (float[])_rawData.Struct.gearRatiosReverse;
         public float EngineRpm => _rawData.Struct.engineRpm;
         public float EngineRpmMax => _rawData.Struct.engineRpmMax;
         public float Fuel => _rawData.Struct.fuel;
@@ -166,12 +213,6 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public float GameThrottle => _rawData.Struct.gameThrottle;
         public float GameBrake => _rawData.Struct.gameBrake;
         public float GameClutch => _rawData.Struct.gameClutch;
-        public int ShifterSlot => (int)_rawData.Struct.shifterSlot;
-
-        //public int ShifterToggle
-        //{
-        //    get { return _rawData.Struct.shifterToggle; }
-        //}
 
         public bool EngineOn => _rawData.Struct.engineEnabled != 0;
         public bool ElectricOn => _rawData.Struct.electricEnabled != 0;
@@ -250,29 +291,19 @@ namespace Funbit.Ets.Telemetry.Server.Data
 
         public string LicensePlateCountry => Ets2TelemetryData.BytesToString(_rawData.Struct.truckLicensePlateCountry);
 
-        /*
-        public IEts2GearSlot[] GearSlots
-        {
-            get
-            {
-                var array = new IEts2GearSlot[_rawData.Struct.selectorCount];
-                for (int i = 0; i < array.Length; i++)
-                    array[i] = new Ets2GearSlot(_rawData, i);
-                return array;
-            }
-        }
-                
+        public int WheelCount => (int)_rawData.Struct.truckWheelCount;
+
         public IEts2Wheel[] Wheels
         {
             get
             {
-                var array = new IEts2Wheel[_rawData.Struct.wheelCount];
+                var array = new IEts2Wheel[_rawData.Struct.truckWheelCount];
                 for (int i = 0; i < array.Length; i++)
-                    array[i] = new Ets2Wheel(_rawData, i);
+                    array[i] = new Ets2TruckWheel(_rawData, i);
+                Array.Sort(array, new Ets2WheelSorter());
                 return array;
             }
         }
-        */
     }
 
     class Ets2Trailer : IEts2Trailer
@@ -291,9 +322,9 @@ namespace Funbit.Ets.Telemetry.Server.Data
             _trailerNumber = trailerNumber;
         }
 
-        public int TrailerNumber => _trailerNumber + 1;
+        public int Number => _trailerNumber;
 
-        public bool Attached => _rawData.Struct.trailer0attached != 0 && 
+        public bool Attached => _rawData.Struct.trailer0attached != 0 &&
                                 (byte)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}attached").GetValue(_rawData.Struct) != 0;
 
         public bool Present => !string.IsNullOrEmpty(Ets2TelemetryData.BytesToString((byte[])_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}id").GetValue(_rawData.Struct)));
@@ -305,7 +336,7 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public string Name => Ets2TelemetryData.BytesToString((byte[])_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}name").GetValue(_rawData.Struct));
 
         // ReSharper disable once PossibleNullReferenceException
-        public float WearWheels => (float) _rawData.Struct.GetType().GetField($"trailer{_trailerNumber}wearWheels").GetValue(_rawData.Struct);
+        public float WearWheels => (float)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}wearWheels").GetValue(_rawData.Struct);
 
         // ReSharper disable once PossibleNullReferenceException
         public float WearChassis => (float)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}wearChassis").GetValue(_rawData.Struct);
@@ -349,13 +380,50 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public string ChainType => Ets2TelemetryData.BytesToString((byte[])_rawData.Struct.GetType()
             .GetField($"trailer{_trailerNumber}chainType").GetValue(_rawData.Struct));
 
+        //PC 191117: Now using GetField...
         public IEts2Placement Placement => new Ets2Placement(
-            _rawData.Struct.trailer0worldX,
-            _rawData.Struct.trailer0worldY,
-            _rawData.Struct.trailer0worldZ,
-            _rawData.Struct.trailer0rotationX,
-            _rawData.Struct.trailer0rotationY,
-            _rawData.Struct.trailer0rotationZ);
+            (double)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}worldX").GetValue(_rawData.Struct),
+            (double)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}worldY").GetValue(_rawData.Struct),
+            (double)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}worldZ").GetValue(_rawData.Struct),
+            (double)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}rotationX").GetValue(_rawData.Struct),
+            (double)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}rotationY").GetValue(_rawData.Struct),
+            (double)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}rotationZ").GetValue(_rawData.Struct));
+        public float Distance
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Ets2TelemetryData.BytesToString((byte[])_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}id").GetValue(_rawData.Struct))))
+                    return 0;
+                return (float)Math.Sqrt(
+                    Math.Pow((_rawData.Struct.coordinateX - (double)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}worldX").GetValue(_rawData.Struct)), 2) +
+                    Math.Pow((_rawData.Struct.coordinateY - (double)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}worldY").GetValue(_rawData.Struct)), 2) +
+                    Math.Pow((_rawData.Struct.coordinateZ - (double)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}worldZ").GetValue(_rawData.Struct)), 2));
+            }
+        }
+        public IEts2Vector Hook => new Ets2Vector(
+            (float)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}hookPositionX").GetValue(_rawData.Struct),
+            (float)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}hookPositionY").GetValue(_rawData.Struct),
+            (float)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}hookPositionZ").GetValue(_rawData.Struct));
+
+        public uint WheelCount => (uint)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}wheelCount").GetValue(_rawData.Struct);
+
+        public IEts2Wheel[] Wheels
+        {
+            get
+            {
+                uint wheelCount = (uint)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}wheelCount").GetValue(_rawData.Struct);
+                var array = new IEts2Wheel[wheelCount];
+                if (wheelCount > 0)
+                {
+                    for (int i = 0; i < array.Length; i++)
+                        array[i] = new Ets2TrailerWheel(_rawData, _trailerNumber, i);
+                    Ets2WheelSorter sorter = new Ets2WheelSorter();
+                    Array.Sort(array, sorter);
+                }
+                return array;
+            }
+        }
+
     }
 
     class Ets2Navigation : IEts2Navigation
@@ -503,45 +571,85 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public string TargetId => Ets2TelemetryData.BytesToString(_rawData.Struct.trainTargetId);
         public int PayAmount => (int)_rawData.Struct.trainPayAmount;
     }
-
-    /*
-    class Ets2Wheel : IEts2Wheel
+    public class Ets2WheelSorter : IComparer<IEts2Wheel>
     {
-        public Ets2Wheel(Box<Ets2TelemetryStructure> rawData, int wheelIndex)
+        public int Compare(IEts2Wheel x, IEts2Wheel y) => (int)(x.Position.Z - y.Position.Z);
+    }
+    class Ets2TruckWheel : IEts2Wheel
+    {
+        public Ets2TruckWheel(Box<Ets2TelemetryStructure> rawData, int wheelIndex)
         {
-            Simulated = rawData.Struct.wheelSimulated[wheelIndex] != 0;
-            Steerable = rawData.Struct.wheelSteerable[wheelIndex] != 0;
-            Radius = rawData.Struct.wheelRadius[wheelIndex];
+            Simulated = rawData.Struct.truckWheelSimulated[wheelIndex] != 0;
+            Steerable = rawData.Struct.truckWheelSteerable[wheelIndex] != 0;
+            Radius = rawData.Struct.truckWheelRadius[wheelIndex];
             Position = new Ets2Vector(
                 rawData.Struct.wheelPositionX[wheelIndex],
                 rawData.Struct.wheelPositionY[wheelIndex],
                 rawData.Struct.wheelPositionZ[wheelIndex]);
-            Powered = rawData.Struct.wheelPowered[wheelIndex] != 0;
-            Liftable = rawData.Struct.wheelLiftable[wheelIndex] != 0;
+            Powered = rawData.Struct.truckWheelPowered[wheelIndex] != 0;
+            Liftable = rawData.Struct.truckWheelLiftable[wheelIndex] != 0;
+            Lifted = rawData.Struct.truck_wheelLift[wheelIndex] != 0;
         }
 
         public bool Simulated { get; private set; }
         public bool Steerable { get; private set; }
         public bool Powered { get; private set; }
         public bool Liftable { get; private set; }
+        public bool Lifted { get; private set; }
         public float Radius { get; private set; }
         public IEts2Vector Position { get; private set; }
     }
-    
-    class Ets2GearSlot : IEts2GearSlot
+
+    class Ets2TrailerWheel : IEts2Wheel
     {
-        public Ets2GearSlot(Box<Ets2TelemetryStructure> rawData, int slotIndex)
+        public Ets2TrailerWheel(Box<Ets2TelemetryStructure> rawData, int trailerNumber, int wheelIndex)
         {
-            Gear = rawData.Struct.slotGear[slotIndex];
-            HandlePosition = (int)rawData.Struct.slotHandlePosition[slotIndex];
-            SlotSelectors = (int)rawData.Struct.slotSelectors[slotIndex];
+            byte[] b;
+            float[] f;
+            b = (byte[])rawData.Struct.GetType().GetField($"trailer{trailerNumber}wheelSimulated").GetValue(rawData.Struct);
+            Simulated = b[wheelIndex] != 0;
+            b = (byte[])rawData.Struct.GetType().GetField($"trailer{trailerNumber}wheelSteerable").GetValue(rawData.Struct);
+            Steerable = b[wheelIndex] != 0;
+            f = (float[])rawData.Struct.GetType().GetField($"trailer{trailerNumber}wheelRadius").GetValue(rawData.Struct);
+            Radius = f[wheelIndex];
+            float[] pX = (float[])rawData.Struct.GetType().GetField($"trailer{trailerNumber}wheelPositionX").GetValue(rawData.Struct);
+            float[] pY = (float[])rawData.Struct.GetType().GetField($"trailer{trailerNumber}wheelPositionY").GetValue(rawData.Struct);
+            float[] pZ = (float[])rawData.Struct.GetType().GetField($"trailer{trailerNumber}wheelPositionZ").GetValue(rawData.Struct);
+            Position = new Ets2Vector(
+                pX[wheelIndex],
+                pY[wheelIndex],
+                pZ[wheelIndex]);
+            b = (byte[])rawData.Struct.GetType().GetField($"trailer{trailerNumber}wheelPowered").GetValue(rawData.Struct);
+            Powered = b[wheelIndex] != 0;
+            b = (byte[])rawData.Struct.GetType().GetField($"trailer{trailerNumber}wheelLiftable").GetValue(rawData.Struct);
+            Liftable = b[wheelIndex] != 0;
+            f = (float[])rawData.Struct.GetType().GetField($"trailer{trailerNumber}wheelLift").GetValue(rawData.Struct);
+            Lifted = f[wheelIndex] != 0;
+        }
+
+        public bool Simulated { get; private set; }
+        public bool Steerable { get; private set; }
+        public bool Powered { get; private set; }
+        public bool Liftable { get; private set; }
+        public bool Lifted { get; private set; }
+        public float Radius { get; private set; }
+        public IEts2Vector Position { get; private set; }
+    }
+
+    class Ets2Shifter : IEts2Shifter
+    {
+        public Ets2Shifter(Box<Ets2TelemetryStructure> rawData, int slotIndex)
+        {
+            Gear = rawData.Struct.hshifterResulting[slotIndex];
+            Slot = (int)rawData.Struct.hshifterPosition[slotIndex];
+            Toggle = (int)rawData.Struct.hshifterBitmask[slotIndex];
         }
 
         public int Gear { get; private set; }
-        public int HandlePosition { get; private set; }
-        public int SlotSelectors { get; private set; }
+        public int Slot { get; private set; }
+        public int Toggle { get; private set; }
     }
-    */
+
 
     class Box<T> where T : struct 
     {

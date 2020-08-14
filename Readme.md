@@ -26,8 +26,7 @@ Returns structured JSON object with the latest telemetry data read from the game
 			"timeScale": 19.0,
 			"nextRestStopTime": "0001-01-01T10:11:00Z",
 			"version": "1.10",
-			"telemetryPluginVersion": "7",
-			"maxTrailerCount": 10
+			"telemetryPluginVersion": "7"
 		},
 		"truck":{
 			"id": "man",
@@ -67,8 +66,8 @@ As you can see dashboard design is completely customizable. With some basic know
 
 ### Supported games
 
-- Euro Truck Simulator 2 (64-bit) version 1.35+ (Steam or Standalone). Multiplayer versions are supported as well. 
-- American Truck Simulator version 1.35+ (Steam or Standalone)
+- Euro Truck Simulator 2 (32-bit or 64-bit) version 1.15+ (Steam or Standalone). Multiplayer versions are supported as well. 
+- American Truck Simulator (Steam or Standalone)
 
 ### Tested browsers
 
@@ -170,10 +169,6 @@ No. There is a chance that it will work, but it won't be supported.
 
 Starting from version 3.0.0 this is possible, but I haven't yet had time to update the default skins to display it. But I will ;)
 
-> I updated from 3.2.5 to 4.0.0 and everything broke. This app sucks!
-
-Some structural changes were made to the telemetry API which may break older skins.  Either update the skin to be compatible with 4.0.0, or wait for the skin creator to update the skin.
-
 ## Dashboard skin tutorial
 
 The tutorial is included in the ZIP package (see "Dashboard Skin Tutorial.pdf"). You may download it separately from [here](https://raw.githubusercontent.com/Funbit/ets2-telemetry-server/master/Dashboard%20Skin%20Tutorial.pdf).
@@ -182,19 +177,11 @@ The tutorial is included in the ZIP package (see "Dashboard Skin Tutorial.pdf").
 
 The ETS2 Telemetry Web Server has evolved into a pretty complex open-source project that requires singificant amount of time to support. If you are interested in its future you may provide the author with some material support by clicking the button below.
 
-[![](https://raw.githubusercontent.com/Funbit/ets2-telemetry-server/master/server/Html/images/donate-link.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=4TL7HR4F9HRYU)
-*Note: This now points to mike-koch's PayPal donate button instead of Funbit's as of 4.0.0*
+[![](https://raw.githubusercontent.com/Funbit/ets2-telemetry-server/master/server/Html/images/donate-link.png)](http://funbit.info/ets2/donate.htm)
 
 Thank you!
 
 ## Version history
-
-### 4.0.0
-
-- Added support for ETS2 / ATS 1.35
-- Added support for Telemetry SDK 1.10 (trailer ownership, events (speeding, ferry, etc.))
-- Dropped support for 32-bit ETS2
-- Dropped support for ETS2 / ATS 1.34 and older
 
 ### 3.2.5
 
